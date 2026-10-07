@@ -1,3 +1,11 @@
+# Intentionally has no permission policies.
+# The instances run in private subnets with no NAT and no VPC endpoints, so they
+# cannot call AWS APIs, and nothing running on them needs to. The role and
+# instance profile are the attachment point for SSM Session Manager or the
+# CloudWatch agent once VPC endpoints are added.
+
+
+
 # ------------------
 # iam role for ec2
 # -----------------

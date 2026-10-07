@@ -1,5 +1,5 @@
 resource "aws_security_group" "bastion" {
-  # ... other configuration ...
+
   name        = "bastion-sg"
   description = "security group for bastion host"
   vpc_id      = var.vpc_id
@@ -43,8 +43,8 @@ resource "aws_security_group" "bastion" {
 
 resource "aws_security_group" "alb" {
 
-  # ... other configuration ...
-  name        = "alg-sg"
+
+  name        = "alb-sg"
   description = "security group for alb"
   vpc_id      = var.vpc_id
 
@@ -84,7 +84,7 @@ resource "aws_security_group" "alb" {
 
 resource "aws_security_group" "private-ec2" {
 
-  # ... other configuration ...
+
   name        = "private-ec2-sg"
   description = " sg for private app server"
   vpc_id      = var.vpc_id
