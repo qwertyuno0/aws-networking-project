@@ -48,6 +48,11 @@ variable "max_size" {
 
 variable "target_group_arn" {
   description = "arn of the alb target group"
-  type = string
+  type        = string
+}
+
+variable "sns_topic_arn" {
+  description = "SNS topic ARN for ASG lifecycle notifications"
+  type        = string
 }
 

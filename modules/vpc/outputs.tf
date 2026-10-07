@@ -13,3 +13,7 @@ output "private_subnet_ids" {
 output "internet_gateway_id" {
   value = aws_internet_gateway.main.id
 }
+
+output "vpc_cidr" {
+  value = aws_vpc.main.cidr_block
+}

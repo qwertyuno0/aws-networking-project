@@ -33,3 +33,9 @@ Thumbs.db
 # Editor files
 .vscode/
 .idea/
+
+# Saved plan files
+tfplan
+
+# Lock files belong only in root modules
+modules/**/.terraform.lock.hcl

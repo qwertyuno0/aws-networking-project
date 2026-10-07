@@ -2,7 +2,7 @@ resource "aws_lb" "main" {
   name               = "${var.environment}-application-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [ var.alb_security_group_id ]
+  security_groups    = [var.alb_security_group_id]
   subnets            = var.public_subnet_ids
 
   tags = {
@@ -20,6 +20,7 @@ resource "aws_lb_target_group" "app" {
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 
+  deregistration_delay = 90
   health_check {
     enabled             = true
     path                = "/"

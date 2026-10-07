@@ -8,7 +8,7 @@ resource "aws_cloudwatch_metric_alarm" "asg_high_cpu" {
   evaluation_periods  = 1
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = 300
   statistic           = "Average"
   threshold           = 30
 
@@ -58,12 +58,12 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_targets" {
 resource "aws_cloudwatch_metric_alarm" "alb_request_count" {
   alarm_name          = "${var.environment}-alb-request-count"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 1
+  evaluation_periods  = 2
   metric_name         = "RequestCount"
   namespace           = "AWS/ApplicationELB"
   period              = 60
   statistic           = "Sum"
-  threshold           = 10
+  threshold           = 50
 
   dimensions = {
     LoadBalancer = var.alb_arn_suffix
@@ -83,16 +83,18 @@ resource "aws_cloudwatch_metric_alarm" "alb_request_count" {
 resource "aws_cloudwatch_metric_alarm" "alb_high_response_time" {
   alarm_name          = "${var.environment}-alb-high-response-time"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 1
+  evaluation_periods  = 3
   metric_name         = "TargetResponseTime"
   namespace           = "AWS/ApplicationELB"
   period              = 60
   statistic           = "Average"
-  threshold           = 1
+  threshold           = 5
   alarm_description   = "alarm when alb target response time is high"
   dimensions = {
     LoadBalancer = var.alb_arn_suffix
   }
+  alarm_actions      = [var.sns_topic_arn]
+  ok_actions         = [var.sns_topic_arn]
   treat_missing_data = "notBreaching"
 }
 
@@ -108,11 +110,13 @@ resource "aws_cloudwatch_metric_alarm" "alb_http_5xx" {
   namespace           = "AWS/ApplicationELB"
   period              = 60
   statistic           = "Sum"
-  threshold           = 1
+  threshold           = 5
   alarm_description   = "alarm when alb generates http 5** errors"
   dimensions = {
     LoadBalancer = var.alb_arn_suffix
   }
+  alarm_actions      = [var.sns_topic_arn]
+  ok_actions         = [var.sns_topic_arn]
   treat_missing_data = "notBreaching"
 }
 

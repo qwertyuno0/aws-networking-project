@@ -42,16 +42,19 @@ resource "aws_instance" "bastion" {
   set -e
 
   # Update package lists
-  apt-get update -y
+  
+  apt-get -o DPkg::Lock::Timeout=300 update -y
 
   # Install Nginx and repository tools
-  apt-get install -y nginx dpkg-dev
+  
+  apt-get -o DPkg::Lock::Timeout=300 install -y nginx dpkg-dev
 
   # Create package repository directory
   mkdir -p /var/www/html/repo
 
   # Download Apache and all required packages
-  apt-get --download-only install -y apache2
+
+  apt-get -o DPkg::Lock::Timeout=300 --download-only install -y apache2
 
   # Copy downloaded .deb packages to the repository
   cp /var/cache/apt/archives/*.deb /var/www/html/repo/

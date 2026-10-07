@@ -5,21 +5,24 @@ data "http" "my_ip" {
   url = "https://checkip.amazonaws.com/"
 }
 
+locals {
+  vpc_cidr = "10.0.0.0/16"
+}
 
 
 module "vpc" {
   source = "../../modules/vpc"
 
-  vpc_cidr = "172.32.0.0/16"
+  vpc_cidr = local.vpc_cidr
 
   public_subnet_cidrs = [
-    "172.32.7.0/24",
-    "172.32.8.0/24"
+    "10.0.1.0/24",
+    "10.0.2.0/24"
   ]
 
   private_subnet_cidrs = [
-    "172.32.15.0/24",
-    "172.32.16.0/24"
+    "10.0.11.0/24",
+    "10.0.12.0/24"
   ]
 }
 
@@ -27,7 +30,7 @@ module "security" {
   source = "../../modules/security"
 
   vpc_id   = module.vpc.vpc_id
-  vpc_cidr = "172.32.0.0/16"
+  vpc_cidr = local.vpc_cidr
 
   public_subnet_ids  = module.vpc.public_subnet_ids
   private_subnet_ids = module.vpc.private_subnet_ids
@@ -98,6 +101,8 @@ module "autoScaling" {
   package_repo_ip = module.bastion.bastion_private_ip
 
   target_group_arn = module.alb.target_group_arn
+
+  sns_topic_arn = module.sns.topic_arn
 
   min_size         = 2
   desired_capacity = 2
