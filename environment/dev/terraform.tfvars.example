@@ -1,0 +1,6 @@
+# Copy this file to terraform.tfvars and fill in your own values.
+# terraform.tfvars is gitignored; this example file is not.
+
+key_name    = "your-ec2-keypair-name"   # must already exist in ap-south-1
+alert_email = "you@example.com"          # receives alarm and ASG notifications
+# aws_region = "ap-south-1"             # optional, this is the default
