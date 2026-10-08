@@ -77,6 +77,7 @@ It is designed to stay cheap. There is **no NAT Gateway**: the private servers i
 ## Architecture
 
 ```mermaid
+
 flowchart TB
     users([Internet users])
     admin([Admin laptop])
@@ -109,6 +110,7 @@ flowchart TB
     asg --- app2
     cw --> sns
     asg -->|launch and terminate events| sns
+
 ```
 
 **Traffic paths**
