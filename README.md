@@ -14,12 +14,6 @@
 
 </div>
 
-<!--
-📸 HERO IMAGE (optional but recommended): a clean architecture diagram exported from draw.io / Excalidraw / AWS icons.
-Save as docs/images/00-architecture-hero.png and uncomment the next 3 lines.
-The Mermaid diagram below still works on GitHub, so this is only a nicer-looking version.
-
--->
 <p align="center">
   <img src="docs/images/00-architecture-hero.png" alt="Architecture overview" width="850">
 </p>
@@ -45,7 +39,6 @@ It is designed to stay cheap. There is **no NAT Gateway**: the private servers i
 
 ### Preview
 
-<!-- 📸 PREVIEW ROW: reuse three screenshots you already take below (02, 08, 12). No new screenshots needed. -->
 <table>
   <tr>
     <td align="center"><img src="docs/images/02-alb-server-1.png" alt="Load balanced page" width="280"><br><sub>Load balancing</sub></td>
@@ -216,15 +209,15 @@ terraform apply
 
 ### 3. Deploy the environment
 
-Create `environment/dev/terraform.tfvars` (it is gitignored):
+Copy the example variables file and fill in your own values (`terraform.tfvars` is gitignored):
 
-```hcl
-key_name    = "your-ec2-keypair-name"
-alert_email = "you@example.com"
+```bash
+cd environment/dev
+cp terraform.tfvars.example terraform.tfvars
+# edit terraform.tfvars: set key_name and alert_email
 ```
 
 ```bash
-cd ../environment/dev
 terraform init
 terraform plan -out=tfplan
 terraform apply tfplan
@@ -234,7 +227,6 @@ terraform apply tfplan
 
 AWS sends a confirmation email. Click the link, otherwise no alerts will arrive.
 
-<!-- 📸 SCREENSHOT 01: terminal showing "Apply complete! Resources: N added" and the Outputs block below it. Blur the bastion public IP. Save as docs/images/01-terraform-apply-outputs.png -->
 <p align="center">
   <img src="docs/images/01-terraform-apply-outputs.png" alt="terraform apply complete with outputs" width="800"><br>
   <sub><i><code>terraform apply</code> completing and printing the outputs.</i></sub>
@@ -248,7 +240,6 @@ AWS sends a confirmation email. Click the link, otherwise no alerts will arrive.
 
 Open the ALB DNS name (`terraform output alb_dns_name`) in a browser and refresh. The hostname on the page alternates between the two servers.
 
-<!-- 📸 SCREENSHOTS 02 and 03: the ALB page in the browser, showing the Hostname line. Take one, refresh until the hostname changes, take the second. Keep the address bar visible. Save as docs/images/02-alb-server-1.png and docs/images/03-alb-server-2.png -->
 <table>
   <tr>
     <th align="center">Server 1</th>
@@ -264,7 +255,6 @@ Open the ALB DNS name (`terraform output alb_dns_name`) in a browser and refresh
 
 ### Both targets healthy
 
-<!-- 📸 SCREENSHOT 04: AWS Console > EC2 > Target Groups > dev-app-tg > Targets tab, with both targets showing "healthy". Save as docs/images/04-target-group-healthy.png -->
 <p align="center">
   <img src="docs/images/04-target-group-healthy.png" alt="target group with two healthy targets" width="800"><br>
   <sub><i>Target group <code>dev-app-tg</code> with both instances healthy.</i></sub>
@@ -272,7 +262,6 @@ Open the ALB DNS name (`terraform output alb_dns_name`) in a browser and refresh
 
 ### Private servers have no public IP
 
-<!-- 📸 SCREENSHOT 05: AWS Console > EC2 > Instances list. Bastion has a public IP, the two ASG instances show no public IPv4. Add the "Public IPv4 address" and "Availability Zone" columns. Blur the bastion IP. Save as docs/images/05-ec2-instances.png -->
 <p align="center">
   <img src="docs/images/05-ec2-instances.png" alt="EC2 instances: bastion public, app servers private" width="800"><br>
   <sub><i>The bastion is the only instance with a public address. The app servers sit in private subnets in different AZs.</i></sub>
@@ -284,7 +273,6 @@ Open the ALB DNS name (`terraform output alb_dns_name`) in a browser and refresh
 ssh -i your-key.pem -J ubuntu@<bastion_public_ip> ubuntu@<private_instance_ip>
 ```
 
-<!-- 📸 SCREENSHOT 06: terminal where you ran the ssh -J command above and got a prompt on the private instance. Run "hostname" and "curl -I localhost" so both show. Blur public IPs. Save as docs/images/06-bastion-ssh-jump.png -->
 <p align="center">
   <img src="docs/images/06-bastion-ssh-jump.png" alt="SSH jump through the bastion" width="800"><br>
   <sub><i>Reaching a private instance only via the bastion.</i></sub>
@@ -292,7 +280,6 @@ ssh -i your-key.pem -J ubuntu@<bastion_public_ip> ubuntu@<private_instance_ip>
 
 ### Remote state
 
-<!-- 📸 SCREENSHOT 07: AWS Console > S3 > your state bucket > networking-project/dev/ showing terraform.tfstate. If you can, also show the Properties tab with Bucket Versioning = Enabled in a second screenshot and combine them. Save as docs/images/07-s3-remote-state.png -->
 <p align="center">
   <img src="docs/images/07-s3-remote-state.png" alt="Terraform state stored in S3" width="800"><br>
   <sub><i>State stored remotely in a versioned, encrypted bucket.</i></sub>
@@ -333,30 +320,21 @@ aws autoscaling set-instance-health \
 
 The site stays up throughout because the other instance keeps serving traffic.
 
-<!-- 📸 SCREENSHOT 08: AWS Console > EC2 > Auto Scaling Groups > dev-private-ec2-asg > Activity tab > Activity history, showing the "Terminating" and "Launching a new EC2 instance" entries for the test. Save as docs/images/08-asg-activity-history.png -->
 <p align="center">
   <img src="docs/images/08-asg-activity-history.png" alt="ASG activity history showing terminate and launch" width="800"><br>
   <sub><i>The ASG terminating the unhealthy instance and launching a replacement.</i></sub>
 </p>
 
-<!-- 📸 SCREENSHOT 09: Target Groups > dev-app-tg > Targets tab DURING the test, showing one target unhealthy or draining and a new target initial. Take it a minute or two after stopping Apache. Save as docs/images/09-target-group-replacement.png -->
 <p align="center">
   <img src="docs/images/09-target-group-replacement.png" alt="target group during replacement" width="800"><br>
   <sub><i>The target group mid-replacement: one target draining, a new one registering.</i></sub>
 </p>
 
-<!-- 📸 SCREENSHOT 10: your email inbox with the ASG notification emails (EC2_INSTANCE_TERMINATE / EC2_INSTANCE_LAUNCH). Blur your email address and account ID. Save as docs/images/10-asg-notification-email.png -->
 <p align="center">
   <img src="docs/images/10-asg-notification-email.png" alt="ASG launch and terminate notification emails" width="800"><br>
   <sub><i>Every launch and terminate event is emailed through SNS.</i></sub>
 </p>
 
-<!-- OPTIONAL 📸 SCREENSHOT 11 (scale-out demo): run "for i in 1 2; do yes > /dev/null & done" on a private instance, wait for CPU to pass 35%, then screenshot the ASG Activity tab showing capacity going from 2 to 3. Stop the load with "pkill yes". To use it, save as docs/images/11-asg-scale-out.png and delete the comment markers around the lines below.
-<p align="center">
-  <img src="docs/images/11-asg-scale-out.png" alt="ASG scaling out under CPU load" width="800"><br>
-  <sub><i>CPU target tracking adds an instance under load.</i></sub>
-</p>
--->
 
 ---
 
@@ -374,19 +352,16 @@ All alarms notify the SNS topic, which emails the address you provide.
 
 > **Note:** EC2 publishes CPU data every 5 minutes with basic monitoring, so that alarm uses a 300-second period. The CPU threshold is deliberately low so it is easy to trigger in a demo. Use 70 to 80% for real workloads.
 
-<!-- 📸 SCREENSHOT 12: AWS Console > CloudWatch > Dashboards > dev-dashboard with data visible in the widgets (refresh the ALB page 20 or 30 times first so request count has data). Save as docs/images/12-cloudwatch-dashboard.png -->
 <p align="center">
   <img src="docs/images/12-cloudwatch-dashboard.png" alt="CloudWatch dashboard" width="800"><br>
   <sub><i>Dashboard: ASG CPU, group capacity, request count, response time, target health, 5xx errors.</i></sub>
 </p>
 
-<!-- 📸 SCREENSHOT 13: CloudWatch > Alarms > All alarms, showing the 5 dev-* alarms (OK or In alarm). Save as docs/images/13-cloudwatch-alarms.png -->
 <p align="center">
   <img src="docs/images/13-cloudwatch-alarms.png" alt="CloudWatch alarms list" width="800"><br>
-  <sub><i>The Seven alarms managed by Terraform.</i></sub>
+  <sub><i>The five alarms managed by Terraform.</i></sub>
 </p>
 
-<!-- 📸 SCREENSHOT 14: your inbox with an alarm email (subject starts with "ALARM:"). Blur your email address and account ID. Save as docs/images/14-sns-alarm-email.png -->
 <p align="center">
   <img src="docs/images/14-sns-alarm-email.png" alt="SNS alarm email" width="800"><br>
   <sub><i>An alarm notification delivered by SNS.</i></sub>
@@ -439,6 +414,7 @@ Free-tier coverage depends on when the AWS account was created, so check the Bil
 - **HTTP only.** No TLS certificate, HTTPS listener or custom domain yet.
 - **The IAM role is a baseline.** The instance profile exists but has no policies attached.
 - **Not yet hardened:** IMDSv2 is not enforced, EBS volumes are not explicitly encrypted, and the AMI is the latest Ubuntu 22.04 at plan time rather than a pinned ID.
+- **Package signatures are not verified.** The internal APT repository is configured with `[trusted=yes]`, which skips signature checks because the bastion builds the repo itself. Anyone who could modify `/var/www/html/repo` on the bastion could push malicious packages to every new instance. A production setup would sign the repository with a GPG key or bake the packages into an AMI.
 - **SSH access uses the IP detected at apply time.** If your IP changes, re-run `terraform apply` to update the security group and NACL.
 - **Dev-only settings:** demo-level alarm thresholds, and `force_destroy = true` on the state bucket.
 
