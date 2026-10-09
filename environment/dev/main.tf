@@ -1,6 +1,6 @@
 
 
-
+#for the laptop ip
 data "http" "my_ip" {
   url = "https://checkip.amazonaws.com/"
 }
