@@ -64,7 +64,7 @@ module "bastion" {
 }
 
 
-# alb for private ec2 instance
+# alb for private ec2 
 
 module "alb" {
   source = "../../modules/alb"
