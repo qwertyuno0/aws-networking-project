@@ -1,0 +1,108 @@
+# This is a basic workflow to help you get started with Actions
+
+name: terraform-ci
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+    paths: ["environment/**", "modules/**"]
+    
+  pull_request:
+    branches: [ "main" ]
+    paths: ["environment/**", "modules/**", ".github/workflows/terraform-ci.yml"]
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+permissions: 
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  TF_VERSION: "1.10.5"
+  TF_DIR: environment/dev
+  AWS_REGION: ${{ vars.AWS_REGION }}
+
+concurrency:
+  group: terraform-dev
+  cancel-in-progress: false
+    
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  
+  # This workflow contains a single job called "checks"
+  checks:
+    name: Format, Validate, lin, scan
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # Runs a terraform fmt command to format the code
+      - name: Format check
+        run: terraform fmt -check -recursive
+
+      # Runs a set of commands using the runners shell
+      - name: Init (no backend)
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform init -backend=false
+
+      - name: validate
+        working-directory: ${{ env.TF_DIR }}
+        run: terraform validate
+
+      - uses: terraform-linters/setup-tflint@v4
+      - name: TFlint
+        run: |
+          tflint --init
+          tflint --recursive
+
+      - name: Trivy Iac scan 
+        uses: aquasecurity/trivy-action@v0.0.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+
+  plan:
+    needs: checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicrop/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Init
+        run: terraform init
+
+      - name: plan
+        run: terraform plan -input=false -out=tfplan
+
+      - name: show plan in job summary
+        run: |
+          echo '### terraform plan' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          terraform show -no-color tfplan >> "$GITHUB_STEP_SUMMARY"
+
+      - name: upload plan
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
