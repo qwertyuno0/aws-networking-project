@@ -8,10 +8,7 @@ variable "autoscaling_group_name" {
   type        = string
 }
 
-variable "target_group_arn" {
-  description = "arn of the alb target group"
-  type        = string
-}
+
 
 variable "alb_arn_suffix" {
   description = "ARN suffix of the Application Load Balancer"

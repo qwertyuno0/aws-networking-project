@@ -21,9 +21,11 @@ permissions:
   pull-requests: write
 
 env:
-  TF_VERSION: "1.10.5"
+  TF_VERSION: "1.11.4"
   TF_DIR: environment/dev
   AWS_REGION: ${{ vars.AWS_REGION }}
+  TF_VAR_key_name: ${{ vars.TF_VAR_KEY_NAME }}
+  TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
 
 concurrency:
   group: terraform-dev
@@ -82,9 +84,25 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
     steps:
       - uses: actions/checkout@v4
-      - uses: hashicrop/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
+
+      #- name: debug role secret
+       # env:
+        #  ARN: ${{ secrets.AWS_ROLE_ARN }}
+        #run:  |
+         # echo " length: ${#ARN}"
+          #echo " role name: ${ARN##*/}"
+          
+
+      #- name: debug oidc claim 
+       # run: |
+        #  TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+         #   "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r .value)
+          #PAYLOAD=$(echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+')
+          #echo "$PAYLOAD$(printf '=%.0s' 1 2 3)" | base64 -d 2>/dev/null | jq '{sub, aud, iss}'
+      # ---- end of debug steps ----
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -106,3 +124,42 @@ jobs:
       - name: upload plan
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_DIR }}/tfplan
+          retention-days: 1
+          
+  apply:
+    name: Terraform apply
+    needs: plan
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: ${{ env.TF_DIR }}
+
+      - name: Init
+        run: terraform init
+
+      - name: Apply 
+        run: terraform apply -input=false tfplan
+
+
+
+          

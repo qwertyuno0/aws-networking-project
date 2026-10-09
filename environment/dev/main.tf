@@ -1,6 +1,6 @@
 
 
-
+#for the laptop ip
 data "http" "my_ip" {
   url = "https://checkip.amazonaws.com/"
 }
@@ -64,13 +64,13 @@ module "bastion" {
 }
 
 
-# alb for private ec2 instance
+# alb for private ec2 
 
 module "alb" {
   source = "../../modules/alb"
 
-  project_name = "aws-networking-project"
-  environment  = "dev"
+
+  environment = "dev"
 
   vpc_id = module.vpc.vpc_id
 
@@ -121,7 +121,7 @@ module "cloudWatch" {
 
   autoscaling_group_name = module.autoScaling.autoscaling_group_name
 
-  target_group_arn = module.alb.target_group_arn
+
 
   alb_arn_suffix = module.alb.alb_arn_suffix
 
