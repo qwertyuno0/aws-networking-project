@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'type "destory-dev" to confirm'
+        description: 'type "destroy-dev" to confirm'
         required: true
 
 permissions: 
