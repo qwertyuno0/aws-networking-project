@@ -38,7 +38,7 @@ jobs:
   
   # This workflow contains a single job called "checks"
   checks:
-    name: Format, Validate, lin, scan
+    name: Format, validate, lint, scan
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -59,7 +59,7 @@ jobs:
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -backend=false
 
-      - name: validate
+      - name: Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
@@ -69,7 +69,7 @@ jobs:
           tflint --init
           tflint --recursive
 
-      - name: Trivy Iac scan 
+      - name: Trivy IaC scan 
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
@@ -113,14 +113,18 @@ jobs:
       - name: Init
         run: terraform init
 
-      - name: plan
+      - name: Plan
         run: terraform plan -input=false -out=tfplan
 
       - name: show plan in job summary
         run: |
-          echo '### terraform plan' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          terraform show -no-color tfplan >> "$GITHUB_STEP_SUMMARY"
+         {
+          echo '### terraform plan' 
+          echo '```' 
+          terraform show -no-color tfplan
+          echo '```'
+          
+         } >> "$GITHUB_STEP_SUMMARY"
 
       - name: upload plan
         if: github.event_name != 'pull_request'
@@ -133,9 +137,13 @@ jobs:
   apply:
     name: Terraform apply
     needs: plan
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: dev
+    timeout-minutes: 30
+    concurrency:
+      group: terraform-dev-apply
+      cancel-in-progress: false
     defaults:
       run:
         working-directory: ${{ env.TF_DIR }}
