@@ -1,3 +1,9 @@
+#-------------------
+#alb
+#-------------------
+
+
+
 resource "aws_lb" "main" {
   name               = "${var.environment}-application-alb"
   internal           = false
