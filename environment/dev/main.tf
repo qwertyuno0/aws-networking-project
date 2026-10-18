@@ -139,7 +139,3 @@ module "sns" {
   alert_email = var.alert_email
 }
 
-# workflow test
-# workflow test 2
-# pr flow test
-# trigger apply
